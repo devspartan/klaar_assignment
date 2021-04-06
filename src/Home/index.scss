@@ -1,0 +1,16 @@
+
+.modify-table {
+    .antd-table {
+        font-size: 12px;
+    }
+    .ant-table.ant-table-middle {
+        font-size: 14px;
+        border: 1px solid #e8e8e8;
+    }
+    .ant-table-tbody > tr > td {
+        font-size: 13px;
+    }
+    .ant-table-thead > tr > th {
+        background-color: #d9d9d9;
+    }
+}
