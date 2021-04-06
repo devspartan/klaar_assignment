@@ -1,12 +1,14 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react'
 import { Table, Input, Button } from 'antd'
-import { CloseCircleOutlined } from '@ant-design/icons'
+import { useDispatch, useSelector } from 'react-redux'
+import { CloseCircleOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
 import Highlighter from 'react-highlight-words'
 import './index.scss'
 
 function Index() {
   const [tableData, setTableData] = useState(null)
+  const [dataLoading, setDataLoading] = useState(false)
   const [originalData, setOriginalData] = useState(null)
   const [tempObj, setTempObj] = useState(null)
   const [name, setName] = useState('')
@@ -17,26 +19,61 @@ function Index() {
   const [district, setDistrict] = useState('')
   const [address, setAddress] = useState('')
   const [isFilterActive, setIsFilterActive] = useState(false)
+  const dispatch = useDispatch()
+  const banks = useSelector(state => state.banks)
 
   useEffect(() => {
-    getText()
+    dispatch({
+      type: 'GET_DATA'
+    })
   }, [])
 
   useEffect(() => {
-    if (tempObj) {
-      setTableData(tempObj)
-      setOriginalData(tempObj)
+    if (banks.loading) {
+      setDataLoading(true)
     }
-  }, [tempObj])
+    else if (banks.bankList) {
+      let tempData = banks.bankList
+      banks.favBanksList?.map(item => {
+        tempData = tempData.map(tt => tt.ifsc === item ? { ...tt, isFav: true } : tt)
+      })
+      setDataLoading(false)
+      setTableData(tempData)
+      setOriginalData(tempData)
+    }
+  }, [banks])
 
-  const getText = async (file) => {
-    let myObject = await fetch('https://vast-shore-74260.herokuapp.com/banks?city=MUMBAI');
-    console.log(myObject)
-    let myText = await myObject.text();
-    setTempObj(JSON.parse(myText))
+  // const getText = async (file) => {
+  //   let myObject = await fetch('https://vast-shore-74260.herokuapp.com/banks?city=MUMBAI');
+  //   console.log(myObject)
+  //   let myText = await myObject.text();
+  //   setTempObj(JSON.parse(myText))
+  // }
+
+  const handleFavclick = record => {
+    if (record.isFav) {
+      dispatch({
+        type: 'REMOVE_FROM_FAV_LIST',
+        payload: { ifsc: record.ifsc }
+      })
+    } else {
+      dispatch({
+        type: 'APPEND_FAV_LIST',
+        payload: { ifsc: record.ifsc }
+      })
+    }
   }
+  console.log(tableData, "tableDta")
 
   const columns = [
+    {
+      render: (text, row) => {
+        return <Button type="link" style={{ padding: 0 }} onClick={() => handleFavclick(row)}>{
+          row.isFav ? <StarFilled style={{ fontSize: 18 }} /> : <StarOutlined style={{ fontSize: 18 }} />
+        }
+        </Button>
+      }
+    },
     {
       title: 'Bank Id',
       dataIndex: 'bank_id',
@@ -205,8 +242,6 @@ function Index() {
     setTableData(tempList)
   }
 
-  console.log(tableData)
-
   const resetFilter = () => {
     setName('')
     setAddress('')
@@ -257,14 +292,7 @@ function Index() {
     })
   }
 
-  const inputCustom = { width: '180px', marginBottom: '8px', display: 'block' }
   const tableFilterStyles = { margin: '0px 28px 0 6px', width: 136 }
-  const customLabel = {
-    fontSize: '17px',
-    color: '#000',
-    marginRight: '12px',
-    marginBottom: '12px',
-  }
 
   const filterHeader = (
     <div style={{
@@ -284,6 +312,7 @@ function Index() {
           name="name"
           placeholder="Search Name"
           allowClear
+          value={name}
           onChange={e =>
             filterHandler(e)
           }
@@ -297,6 +326,7 @@ function Index() {
           allowClear
           name="branch"
           placeholder="Search Branch"
+          value={branch}
           onChange={e =>
             filterHandler(e)
           }
@@ -310,6 +340,7 @@ function Index() {
           name="ifsc"
           allowClear
           placeholder="Search IFSC Code"
+          value={ifsc}
           onChange={e =>
             filterHandler(e)
           }
@@ -323,8 +354,8 @@ function Index() {
           name="city"
           placeholder="Search City"
           allowClear
+          value={city}
           onChange={e =>
-
             filterHandler(e)
           }
           style={tableFilterStyles}
@@ -337,7 +368,7 @@ function Index() {
           name="district"
           placeholder="Search Discrict"
           allowClear
-
+          value={district}
           onChange={e =>
             filterHandler(e)
           }
@@ -351,7 +382,7 @@ function Index() {
           name="state"
           placeholder="Search State"
           allowClear
-
+          value={state}
           onChange={e =>
             filterHandler(e)
           }
@@ -365,9 +396,8 @@ function Index() {
           name="address"
           placeholder="Search Address"
           allowClear
-
+          value={address}
           onChange={e =>
-
             filterHandler(e)
           }
           style={tableFilterStyles}
@@ -382,7 +412,7 @@ function Index() {
       <div style={{ width: '100%', height: 80, backgroundColor: '#f9f9f9', padding: 28, fontSize: 16 }}>
         Klaar assignment
         </div>
-      <div className='modify-table' style={{ width: '95%', alignSelf: 'center', margin: '50px auto' }}>
+      <div className='modify-table' style={{ width: '95%', alignSelf: 'center', margin: '30px auto' }}>
         <div style={{ height: 25, width: 'fit-content', marginLeft: 'auto' }}>
           {isFilterActive ? (
             <Button
@@ -396,7 +426,20 @@ function Index() {
             </Button>
           ) : null}
         </div>
-        <Table title={() => { return filterHeader }} columns={columns} dataSource={tableData} size='middle' />
+        <Table
+          loading={dataLoading}
+          dataSource={tableData}
+          rowKey={record => record.ifsc}
+          title={() => { return filterHeader }}
+          columns={columns}
+          size='middle'
+          pagination={{
+            defaultPageSize: 20,
+            showSizeChanger: true,
+            pageSizeOptions: ['20', '30', '50', '100'],
+            position: 'top',
+          }}
+        />
       </div>
     </>
   )
