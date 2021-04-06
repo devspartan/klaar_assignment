@@ -3,14 +3,16 @@
     .antd-table {
         font-size: 12px;
     }
-    .ant-table.ant-table-middle {
-        font-size: 14px;
+    .ant-table {
+        font-size: 13px;
         border: 1px solid #e8e8e8;
     }
     .ant-table-tbody > tr > td {
-        font-size: 13px;
+        padding: 10px 14px;
+        font-size: 12px;
     }
     .ant-table-thead > tr > th {
+        padding: 12px 14px;
         background-color: #d9d9d9;
     }
 }

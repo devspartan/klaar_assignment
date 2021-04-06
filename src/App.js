@@ -11,6 +11,7 @@ import logger from 'redux-logger'
 import { combineReducers, createStore, applyMiddleware, compose } from 'redux'
 import Sagas from './sagas'
 import { notification } from 'antd';
+import WithCache from './Home/withCache';
 
 const saveToLocalStorage = (state) => {
   try {
@@ -36,7 +37,7 @@ function App() {
     <Provider store={store}>
       <BrowserRouter>
         <Switch >
-          <Route path='/' component={Home} />
+          <Route path='/' component={WithCache} />
           <Route path='/profile' component={Profile} />
           <Route component={Error} />
         </Switch>

@@ -1,16 +1,17 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react'
-import { Table, Input, Button } from 'antd'
+import { Table, Input, Button, Select, notification } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
 import { CloseCircleOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
 import Highlighter from 'react-highlight-words'
 import './index.scss'
 
-function Index() {
+function Index({ cacheActions }) {
+  const { hasCache, getCache } = cacheActions
+  const [cityParam, setCityParam] = useState('MUMBAI')
   const [tableData, setTableData] = useState(null)
   const [dataLoading, setDataLoading] = useState(false)
   const [originalData, setOriginalData] = useState(null)
-  const [tempObj, setTempObj] = useState(null)
   const [name, setName] = useState('')
   const [branch, setBranch] = useState('')
   const [ifsc, setIfsc] = useState('')
@@ -29,10 +30,71 @@ function Index() {
   }, [])
 
   useEffect(() => {
+    if (cityParam) {
+      const url = `https://vast-shore-74260.herokuapp.com/banks?city=${cityParam}`
+      const params = { city: cityParam }
+
+      if (hasCache(url, params)) {
+        console.log("i got cache")
+        const data = getCache(url, params).data
+        dispatch({
+          type: 'SET_STATE',
+          payload: {
+            loading: false,
+            bankList: data,
+            error: null,
+          }
+        })
+      } else {
+        dispatch({
+          type: 'SET_STATE',
+          payload: {
+            loading: true
+          }
+        })
+        try {
+          fetch(url, params)
+            .then((res) => {
+              return res.json()
+            })
+            .then(res => updateFunction(res, url, params))
+        }
+        catch (e) {
+          dispatch({
+            type: 'SET_STATE',
+            payload: {
+              loading: false,
+              error: JSON.parse(e)
+            }
+          })
+          notification.error({
+            message: 'Something went wrong',
+            description: JSON.parse(e)
+          })
+        }
+
+      }
+    }
+  }, [cityParam])
+
+  const updateFunction = (res, url, params) => {
+    dispatch({
+      type: 'SET_STATE',
+      payload: {
+        loading: false,
+        error: null,
+        bankList: res,
+      }
+    })
+    cacheActions.setCache(url, params, res)
+  }
+
+  useEffect(() => {
     if (banks.loading) {
       setDataLoading(true)
     }
     else if (banks.bankList) {
+      console.log("i got called")
       let tempData = banks.bankList
       banks.favBanksList?.map(item => {
         tempData = tempData.map(tt => tt.ifsc === item ? { ...tt, isFav: true } : tt)
@@ -41,14 +103,7 @@ function Index() {
       setTableData(tempData)
       setOriginalData(tempData)
     }
-  }, [banks])
-
-  // const getText = async (file) => {
-  //   let myObject = await fetch('https://vast-shore-74260.herokuapp.com/banks?city=MUMBAI');
-  //   console.log(myObject)
-  //   let myText = await myObject.text();
-  //   setTempObj(JSON.parse(myText))
-  // }
+  }, [banks.loading, banks.bankList, banks.favBanksList])
 
   const handleFavclick = record => {
     if (record.isFav) {
@@ -63,7 +118,6 @@ function Index() {
       })
     }
   }
-  console.log(tableData, "tableDta")
 
   const columns = [
     {
@@ -77,7 +131,8 @@ function Index() {
     {
       title: 'Bank Id',
       dataIndex: 'bank_id',
-      width: 80
+      width: 80,
+      align: 'center'
     },
     {
       title: 'Bank Name',
@@ -112,6 +167,7 @@ function Index() {
     {
       title: 'IFSC Code',
       dataIndex: 'ifsc',
+      width: 130,
       render: (text, row) =>
         ifsc ? (
           <Highlighter
@@ -127,6 +183,7 @@ function Index() {
     {
       title: 'City',
       dataIndex: 'city',
+      width: 110,
       render: (text, row) =>
         city ? (
           <Highlighter
@@ -172,7 +229,7 @@ function Index() {
     {
       title: 'Address',
       dataIndex: 'address',
-      width: 400,
+      width: 380,
       render: (text, row) =>
         address ? (
           <Highlighter
@@ -292,21 +349,19 @@ function Index() {
     })
   }
 
-  const tableFilterStyles = { margin: '0px 28px 0 6px', width: 136 }
-
+  const tableFilterStyles = { margin: '0px 0px 0px 6px', width: 136 }
+  const labelStyle = { width: 60, textAlign: 'right' }
+  const container = { display: 'flex', alignItems: 'center' }
   const filterHeader = (
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      position: 'relative',
-      whiteSpace: 'nowrap',
+      display: 'grid',
+      gridTemplateColumns: 'auto auto auto auto',
       zIndex: 2,
-      height: '28px',
-      width: '100%',
-      padding: '4px 12px'
+      height: '64px',
+      width: '98%',
     }}>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>Name :</span>
+      <span style={container}>
+        <span style={labelStyle}>Name :</span>
         <Input
           size="small"
           name="name"
@@ -319,8 +374,8 @@ function Index() {
           style={tableFilterStyles}
         />
       </span>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>Branch :</span>
+      <span style={container}>
+        <span style={labelStyle}>Branch :</span>
         <Input
           size="small"
           allowClear
@@ -333,8 +388,8 @@ function Index() {
           style={tableFilterStyles}
         />
       </span>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>IFSC :</span>
+      <span style={container}>
+        <span style={labelStyle}>IFSC :</span>
         <Input
           size="small"
           name="ifsc"
@@ -347,8 +402,8 @@ function Index() {
           style={tableFilterStyles}
         />
       </span>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>City :</span>
+      <span style={container}>
+        <span style={labelStyle}>City :</span>
         <Input
           size="small"
           name="city"
@@ -361,8 +416,8 @@ function Index() {
           style={tableFilterStyles}
         />
       </span>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>District :</span>
+      <span style={container}>
+        <span style={labelStyle}>District :</span>
         <Input
           size="small"
           name="district"
@@ -375,8 +430,8 @@ function Index() {
           style={tableFilterStyles}
         />
       </span>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>State :</span>
+      <span style={container}>
+        <span style={labelStyle}>State :</span>
         <Input
           size="small"
           name="state"
@@ -389,8 +444,8 @@ function Index() {
           style={tableFilterStyles}
         />
       </span>
-      <span style={{ display: 'flex', alignItems: 'center' }}>
-        <span>Address :</span>
+      <span style={container}>
+        <span style={labelStyle}>Address :</span>
         <Input
           size="small"
           name="address"
@@ -405,7 +460,6 @@ function Index() {
       </span>
     </div>
   )
-  console.log(isFilterActive, "filter")
 
   return (
     <>
@@ -413,7 +467,15 @@ function Index() {
         Klaar assignment
         </div>
       <div className='modify-table' style={{ width: '95%', alignSelf: 'center', margin: '30px auto' }}>
-        <div style={{ height: 25, width: 'fit-content', marginLeft: 'auto' }}>
+        <div style={{ width: '100%', padding: '10px 0 10px 10px', display: 'flex', justifyContent: 'space-between' }}>
+          <Select value={cityParam} onChange={e => setCityParam(e)} style={{ width: 180 }} >
+            <Select.Option value="MUMBAI">Mumbai</Select.Option>
+            <Select.Option value="DELHI">Delhi</Select.Option>
+            <Select.Option value="NOIDA">Noida</Select.Option>
+            <Select.Option value="JAIPUR">Jaipur</Select.Option>
+            <Select.Option value="LUCKNOW">Lucknow</Select.Option>
+          </Select>
+
           {isFilterActive ? (
             <Button
               type="link"
@@ -432,7 +494,6 @@ function Index() {
           rowKey={record => record.ifsc}
           title={() => { return filterHeader }}
           columns={columns}
-          size='middle'
           pagination={{
             defaultPageSize: 20,
             showSizeChanger: true,
