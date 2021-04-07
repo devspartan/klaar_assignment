@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react'
-import { Form, Table, Input, Button, Select, notification, Breadcrumb, Checkbox, Tooltip } from 'antd'
+import { Table, Input, Button, Select, notification, Breadcrumb, Checkbox, Tooltip } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { CloseCircleOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
@@ -29,7 +29,6 @@ function Index({ cacheActions }) {
 
   useEffect(() => {
     if (banks.bankList.length === 0) {
-
       dispatch({
         type: 'GET_DATA'
       })
@@ -45,9 +44,9 @@ function Index({ cacheActions }) {
     const url = `https://vast-shore-74260.herokuapp.com/banks?city=${tt}`
     const params = { city: tt }
 
-    console.log(url, params)
+    // console.log(url, params)
     if (hasCache(url, params)) {
-      console.log("has cache")
+      // console.log("has cache")
       const data = getCache(url, params).data
       dispatch({
         type: 'SET_STATE',
@@ -58,7 +57,7 @@ function Index({ cacheActions }) {
         }
       })
     } else {
-      console.log("no cache")
+      // console.log("no cache")
       dispatch({
         type: 'SET_STATE',
         payload: {
@@ -109,16 +108,18 @@ function Index({ cacheActions }) {
       banks.favBanksList?.map(item => {
         tempData = tempData.map(tt => tt.ifsc === item ? { ...tt, isFav: true } : tt)
       })
-      console.log("fav banks slifn")
+      // console.log("fav banks slifn")
       setDataLoading(false)
       setTableData(tempData)
       setOriginalData(tempData)
+      resetFilter()
+      setShowOnlyFav(false)
     }
   }, [banks.loading, banks.bankList, banks.favBanksList])
 
   const handleFavclick = record => {
     if (record.isFav) {
-      console.log("got in")
+      // console.log("got in")
       dispatch({
         type: 'REMOVE_FROM_FAV_LIST',
         payload: { ifsc: record.ifsc }
@@ -131,9 +132,9 @@ function Index({ cacheActions }) {
     }
   }
 
-  const handleRedirect = (record) => {
-    localStorage.setItem('bankProfile', JSON.stringify(record))
-    history.push('/profile')
+  const handleRedirect = (ifscCode) => {
+    // localStorage.setItem('bankProfile', JSON.stringify(record))
+    history.push(`/profile?ifsc=${ifscCode}`)
   }
 
   const columns = [
@@ -158,7 +159,7 @@ function Index({ cacheActions }) {
       title: 'Bank Name',
       dataIndex: 'bank_name',
       render: (text, row) =>
-        <Button type="link" style={{ fontSize: 11 }} >
+        <Button type="link" style={{ fontSize: 11 }} onClick={() => handleRedirect(row.ifsc)} >
           {
             name ? (
               <Highlighter
@@ -270,7 +271,6 @@ function Index({ cacheActions }) {
   const filterRecords = ({ bankId, name, branch, city, ifsc, address, state, district }) => {
     let tempList = originalData
     let tempFilter = false
-
     if (showOnlyFav) {
       tempList = tempList && tempList.filter(item => item.isFav && item.isFav === true)
     }
@@ -287,7 +287,7 @@ function Index({ cacheActions }) {
       tempList =
         tempList &&
         tempList.filter(item =>
-          item.bank_name && item.bank_name.toLowerCase().includes(name.toLowerCase()),
+          item.bank_name && item.bank_name.toLowerCase().includes(name.trim().toLowerCase()),
         )
     }
     if (branch) {
@@ -295,7 +295,7 @@ function Index({ cacheActions }) {
       tempList =
         tempList &&
         tempList.filter(
-          item => item.branch && item.branch?.toLowerCase().includes(branch.toLowerCase()),
+          item => item.branch && item.branch?.toLowerCase().includes(branch.trim().toLowerCase()),
         )
     }
     if (ifsc) {
@@ -342,12 +342,12 @@ function Index({ cacheActions }) {
     setDistrict('')
     setState('')
     setIsFilterActive(false)
-    setTableData(originalData)
   }
 
   const filterHandler = e => {
     const tempName = e.target.name
-    const value = e.target.value
+    let value = e.target.value
+    value = value.trimStart()
     switch (tempName) {
       case 'bankId':
         setBankId(value)
@@ -549,7 +549,10 @@ function Index({ cacheActions }) {
             <Button
               type="link"
               style={{ marginLeft: '10px', color: '#feb61b' }}
-              onClick={resetFilter}
+              onClick={() => {
+                resetFilter()
+                setTableData(originalData)
+              }}
               size="small"
             >
               Clear Filters

@@ -2,8 +2,8 @@
 /* eslint-disable object-shorthand */
 /* eslint-disable dot-notation */
 /* eslint-disable prefer-const */
-import { all, takeEvery, put, call, select } from 'redux-saga/effects'
-import { notification, message } from 'antd'
+import { all, takeEvery, put, call } from 'redux-saga/effects'
+import { notification } from 'antd'
 import { fetchData } from './services'
 import actions from './actions'
 
@@ -33,7 +33,7 @@ export function* FETCH_DATA({ payload }) {
     })
 
     const response = yield call(fetchData, payload)
-    console.log("in response", response)
+    // console.log("in response", response)
 
     if (response && response.data) {
         yield put({

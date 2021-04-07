@@ -1,12 +1,10 @@
 import './App.css';
 import "antd/dist/antd.css";
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Home from './Home/index'
 import Profile from './Profile/index'
+import Error from './Error'
 import { Provider } from 'react-redux'
-import { connectRouter } from 'connected-react-router'
 import BankReducer from './redux/reducer'
-import { createHashHistory } from 'history'
 import createSagaMiddleware from 'redux-saga'
 import thunk from 'redux-thunk'
 import logger from 'redux-logger'
@@ -25,8 +23,6 @@ const saveToLocalStorage = (state) => {
     })
   }
 }
-
-const history = createHashHistory()
 
 const rootReducer = combineReducers({ banks: BankReducer })
 const sagaMiddleware = createSagaMiddleware()

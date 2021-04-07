@@ -3,12 +3,10 @@ import { notification } from 'antd'
 
 const getFromLocalStorage = () => {
   try {
-    console.log("i got in funtxoint")
     const tempList = localStorage.getItem('favBanksList')
     if (tempList === undefined || tempList === null) {
       return []
     } else {
-      console.log("i got in return function", JSON.parse(tempList))
       return JSON.parse(tempList)
     }
   } catch (e) {
@@ -44,7 +42,6 @@ export default function bankReducer(state = initialState, action) {
           tempArr.push(item)
         }
       })
-      console.log(tempArr)
       return { ...state, favBanksList: tempArr }
 
     default:
