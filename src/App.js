@@ -28,7 +28,7 @@ const saveToLocalStorage = (state) => {
 
 const history = createHashHistory()
 
-const rootReducer = combineReducers({ banks: BankReducer, router: connectRouter(history) })
+const rootReducer = combineReducers({ banks: BankReducer })
 const sagaMiddleware = createSagaMiddleware()
 const middlewares = [thunk, logger, sagaMiddleware]
 const store = createStore(rootReducer, compose(applyMiddleware(...middlewares)))

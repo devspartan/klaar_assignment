@@ -38,18 +38,14 @@ export default function bankReducer(state = initialState, action) {
         favBanksList: [action.payload.ifsc, ...state.favBanksList],
       }
     case actions.REMOVE_FROM_FAV_LIST:
-      let idx = -1
-      state.favBanksList.map((item, index) => {
-        if (item === action.payload.ifsc) {
-          idx = index
+      const tempArr = []
+      state.favBanksList.forEach(item => {
+        if (item !== action.payload.ifsc) {
+          tempArr.push(item)
         }
       })
-
-      if (idx !== -1) {
-        state.favBanksList.splice(idx, 1)
-      }
-
-      return { ...state, }
+      console.log(tempArr)
+      return { ...state, favBanksList: tempArr }
 
     default:
       return state

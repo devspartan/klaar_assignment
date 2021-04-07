@@ -109,6 +109,7 @@ function Index({ cacheActions }) {
       banks.favBanksList?.map(item => {
         tempData = tempData.map(tt => tt.ifsc === item ? { ...tt, isFav: true } : tt)
       })
+      console.log("fav banks slifn")
       setDataLoading(false)
       setTableData(tempData)
       setOriginalData(tempData)
@@ -117,6 +118,7 @@ function Index({ cacheActions }) {
 
   const handleFavclick = record => {
     if (record.isFav) {
+      console.log("got in")
       dispatch({
         type: 'REMOVE_FROM_FAV_LIST',
         payload: { ifsc: record.ifsc }
@@ -156,7 +158,7 @@ function Index({ cacheActions }) {
       title: 'Bank Name',
       dataIndex: 'bank_name',
       render: (text, row) =>
-        <Button type="link" style={{ fontSize: 11 }} onClick={() => handleRedirect(row)}>
+        <Button type="link" style={{ fontSize: 11 }} >
           {
             name ? (
               <Highlighter
