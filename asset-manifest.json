@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/klaar_assignment/static/css/main.35113877.chunk.css",
+    "main.js": "/klaar_assignment/static/js/main.e631d083.chunk.js",
+    "main.js.map": "/klaar_assignment/static/js/main.e631d083.chunk.js.map",
+    "runtime-main.js": "/klaar_assignment/static/js/runtime-main.d2111fba.js",
+    "runtime-main.js.map": "/klaar_assignment/static/js/runtime-main.d2111fba.js.map",
+    "static/css/2.a5497ee8.chunk.css": "/klaar_assignment/static/css/2.a5497ee8.chunk.css",
+    "static/js/2.0dfc24a0.chunk.js": "/klaar_assignment/static/js/2.0dfc24a0.chunk.js",
+    "static/js/2.0dfc24a0.chunk.js.map": "/klaar_assignment/static/js/2.0dfc24a0.chunk.js.map",
+    "static/js/3.65fd83b5.chunk.js": "/klaar_assignment/static/js/3.65fd83b5.chunk.js",
+    "static/js/3.65fd83b5.chunk.js.map": "/klaar_assignment/static/js/3.65fd83b5.chunk.js.map",
+    "index.html": "/klaar_assignment/index.html",
+    "static/css/2.a5497ee8.chunk.css.map": "/klaar_assignment/static/css/2.a5497ee8.chunk.css.map",
+    "static/css/main.35113877.chunk.css.map": "/klaar_assignment/static/css/main.35113877.chunk.css.map",
+    "static/js/2.0dfc24a0.chunk.js.LICENSE.txt": "/klaar_assignment/static/js/2.0dfc24a0.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.d2111fba.js",
+    "static/css/2.a5497ee8.chunk.css",
+    "static/js/2.0dfc24a0.chunk.js",
+    "static/css/main.35113877.chunk.css",
+    "static/js/main.e631d083.chunk.js"
+  ]
+}
