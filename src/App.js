@@ -7,7 +7,6 @@ import { Provider } from 'react-redux'
 import BankReducer from './redux/reducer'
 import createSagaMiddleware from 'redux-saga'
 import thunk from 'redux-thunk'
-import logger from 'redux-logger'
 import { combineReducers, createStore, applyMiddleware, compose } from 'redux'
 import Sagas from './sagas'
 import { notification } from 'antd';
@@ -26,7 +25,7 @@ const saveToLocalStorage = (state) => {
 
 const rootReducer = combineReducers({ banks: BankReducer })
 const sagaMiddleware = createSagaMiddleware()
-const middlewares = [thunk, logger, sagaMiddleware]
+const middlewares = [thunk, sagaMiddleware]
 const store = createStore(rootReducer, compose(applyMiddleware(...middlewares)))
 sagaMiddleware.run(Sagas)
 

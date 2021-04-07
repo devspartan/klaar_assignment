@@ -133,7 +133,6 @@ function Index({ cacheActions }) {
   }
 
   const handleRedirect = (ifscCode) => {
-    // localStorage.setItem('bankProfile', JSON.stringify(record))
     history.push(`/profile?ifsc=${ifscCode}`)
   }
 
