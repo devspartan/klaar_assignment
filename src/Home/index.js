@@ -1,7 +1,8 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react'
-import { Form, Table, Input, Button, Select, notification, Checkbox, Tooltip } from 'antd'
+import { Form, Table, Input, Button, Select, notification, Breadcrumb, Checkbox, Tooltip } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
+import { useHistory } from 'react-router-dom'
 import { CloseCircleOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
 import Highlighter from 'react-highlight-words'
 import './index.scss'
@@ -24,63 +25,69 @@ function Index({ cacheActions }) {
   const [isFilterActive, setIsFilterActive] = useState(false)
   const dispatch = useDispatch()
   const banks = useSelector(state => state.banks)
+  const history = useHistory()
 
   useEffect(() => {
-    dispatch({
-      type: 'GET_DATA'
-    })
+    if (banks.bankList.length === 0) {
+
+      dispatch({
+        type: 'GET_DATA'
+      })
+    }
   }, [])
 
-  useEffect(() => {
-    if (cityParam) {
-      const url = `https://vast-shore-74260.herokuapp.com/banks?city=${cityParam}`
-      const params = { city: cityParam }
-
-      if (hasCache(url, params)) {
-        const data = getCache(url, params).data
-        dispatch({
-          type: 'SET_STATE',
-          payload: {
-            loading: false,
-            bankList: data,
-            error: null,
-          }
-        })
-      } else {
-        dispatch({
-          type: 'SET_STATE',
-          payload: {
-            loading: true
-          }
-        })
-        try {
-          fetch(url, params)
-            .then((res) => {
-              return res.json()
-            })
-            .then(res => updateFunction(res, url, params))
-        }
-        catch (e) {
-          dispatch({
-            type: 'SET_STATE',
-            payload: {
-              loading: false,
-              error: JSON.parse(e)
-            }
-          })
-          notification.error({
-            message: 'Something went wrong',
-            description: JSON.parse(e)
-          })
-        }
-
-      }
-    }
-  }, [cityParam])
 
   useEffect(() => {
     filterRecords({ name, bankId, branch, city, ifsc, address, state, district })
   }, [showOnlyFav])
+
+  const fetchData = (tt) => {
+    const url = `https://vast-shore-74260.herokuapp.com/banks?city=${tt}`
+    const params = { city: tt }
+
+    console.log(url, params)
+    if (hasCache(url, params)) {
+      console.log("has cache")
+      const data = getCache(url, params).data
+      dispatch({
+        type: 'SET_STATE',
+        payload: {
+          loading: false,
+          bankList: data,
+          error: null,
+        }
+      })
+    } else {
+      console.log("no cache")
+      dispatch({
+        type: 'SET_STATE',
+        payload: {
+          loading: true
+        }
+      })
+      try {
+        fetch(url, params)
+          .then((res) => {
+            return res.json()
+          })
+          .then(res => updateFunction(res, url, params))
+      }
+      catch (e) {
+        dispatch({
+          type: 'SET_STATE',
+          payload: {
+            loading: false,
+            error: JSON.parse(e)
+          }
+        })
+        notification.error({
+          message: 'Something went wrong',
+          description: JSON.parse(e)
+        })
+      }
+    }
+  }
+
   const updateFunction = (res, url, params) => {
     dispatch({
       type: 'SET_STATE',
@@ -122,6 +129,11 @@ function Index({ cacheActions }) {
     }
   }
 
+  const handleRedirect = (record) => {
+    localStorage.setItem('bankProfile', JSON.stringify(record))
+    history.push('/profile')
+  }
+
   const columns = [
     {
       render: (text, row) => {
@@ -137,22 +149,26 @@ function Index({ cacheActions }) {
       title: 'Bank Id',
       dataIndex: 'bank_id',
       width: 80,
-      align: 'center'
+      align: 'center',
+
     },
     {
       title: 'Bank Name',
       dataIndex: 'bank_name',
       render: (text, row) =>
-        name ? (
-          <Highlighter
-            highlightStyle={{ backgroundColor: '#ffca80', padding: 0 }}
-            searchWords={[name]}
-            autoEscape
-            textToHighlight={text}
-          />
-        ) : (
-          text
-        ),
+        <Button type="link" style={{ fontSize: 11 }} onClick={() => handleRedirect(row)}>
+          {
+            name ? (
+              <Highlighter
+                highlightStyle={{ backgroundColor: '#ffca80', padding: 0 }}
+                searchWords={[name]}
+                autoEscape
+                textToHighlight={text}
+              />
+            ) : (
+              text
+            )}
+        </Button>
     },
     {
       title: 'Branch',
@@ -505,11 +521,19 @@ function Index({ cacheActions }) {
       <div style={{ width: '100%', height: 80, backgroundColor: '#f9f9f9', padding: 28, fontSize: 16 }}>
         Klaar assignment
         </div>
-      <div className='modify-table' style={{ width: '95%', alignSelf: 'center', margin: '30px auto' }}>
+      <div style={{ width: '94%', margin: '20px auto' }}>
+        <Breadcrumb>
+          <Breadcrumb.Item>Home</Breadcrumb.Item>
+        </Breadcrumb>
+      </div>
+      <div className='modify-table' style={{ width: '95%', alignSelf: 'center', margin: '10px auto 30px' }}>
         <div style={{ width: '100%', padding: '10px 0 10px 10px', display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
 
-            <Select value={cityParam} onChange={e => setCityParam(e)} style={{ width: 180 }} >
+            <Select value={cityParam} onChange={e => {
+              fetchData(e)
+              setCityParam(e)
+            }} style={{ width: 180 }} >
               <Select.Option value="MUMBAI">Mumbai</Select.Option>
               <Select.Option value="DELHI">Delhi</Select.Option>
               <Select.Option value="NOIDA">Noida</Select.Option>

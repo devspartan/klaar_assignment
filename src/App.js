@@ -4,7 +4,9 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import Home from './Home/index'
 import Profile from './Profile/index'
 import { Provider } from 'react-redux'
+import { connectRouter } from 'connected-react-router'
 import BankReducer from './redux/reducer'
+import { createHashHistory } from 'history'
 import createSagaMiddleware from 'redux-saga'
 import thunk from 'redux-thunk'
 import logger from 'redux-logger'
@@ -24,9 +26,9 @@ const saveToLocalStorage = (state) => {
   }
 }
 
+const history = createHashHistory()
 
-
-const rootReducer = combineReducers({ banks: BankReducer })
+const rootReducer = combineReducers({ banks: BankReducer, router: connectRouter(history) })
 const sagaMiddleware = createSagaMiddleware()
 const middlewares = [thunk, logger, sagaMiddleware]
 const store = createStore(rootReducer, compose(applyMiddleware(...middlewares)))
@@ -37,8 +39,8 @@ function App() {
     <Provider store={store}>
       <BrowserRouter>
         <Switch >
-          <Route path='/' component={WithCache} />
-          <Route path='/profile' component={Profile} />
+          <Route path='/' exact component={WithCache} />
+          <Route path='/profile/' component={Profile} exact />
           <Route component={Error} />
         </Switch>
       </BrowserRouter>
