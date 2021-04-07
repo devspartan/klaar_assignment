@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react'
-import { Table, Input, Button, Select, notification } from 'antd'
+import { Form, Table, Input, Button, Select, notification, Checkbox, Tooltip } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
 import { CloseCircleOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
 import Highlighter from 'react-highlight-words'
@@ -19,6 +19,8 @@ function Index({ cacheActions }) {
   const [state, setState] = useState('')
   const [district, setDistrict] = useState('')
   const [address, setAddress] = useState('')
+  const [bankId, setBankId] = useState('')
+  const [showOnlyFav, setShowOnlyFav] = useState(false)
   const [isFilterActive, setIsFilterActive] = useState(false)
   const dispatch = useDispatch()
   const banks = useSelector(state => state.banks)
@@ -35,7 +37,6 @@ function Index({ cacheActions }) {
       const params = { city: cityParam }
 
       if (hasCache(url, params)) {
-        console.log("i got cache")
         const data = getCache(url, params).data
         dispatch({
           type: 'SET_STATE',
@@ -77,6 +78,9 @@ function Index({ cacheActions }) {
     }
   }, [cityParam])
 
+  useEffect(() => {
+    filterRecords({ name, bankId, branch, city, ifsc, address, state, district })
+  }, [showOnlyFav])
   const updateFunction = (res, url, params) => {
     dispatch({
       type: 'SET_STATE',
@@ -94,7 +98,6 @@ function Index({ cacheActions }) {
       setDataLoading(true)
     }
     else if (banks.bankList) {
-      console.log("i got called")
       let tempData = banks.bankList
       banks.favBanksList?.map(item => {
         tempData = tempData.map(tt => tt.ifsc === item ? { ...tt, isFav: true } : tt)
@@ -122,10 +125,12 @@ function Index({ cacheActions }) {
   const columns = [
     {
       render: (text, row) => {
-        return <Button type="link" style={{ padding: 0 }} onClick={() => handleFavclick(row)}>{
-          row.isFav ? <StarFilled style={{ fontSize: 18 }} /> : <StarOutlined style={{ fontSize: 18 }} />
-        }
-        </Button>
+        return <Tooltip title={`Mark as ${row.isFav ? "un-favourite" : "favourite"}`}>
+          <Button type="link" style={{ padding: 0 }} onClick={() => handleFavclick(row)}>{
+            row.isFav ? <StarFilled style={{ fontSize: 18 }} /> : <StarOutlined style={{ fontSize: 18 }} />
+          }
+          </Button>
+        </Tooltip>
       }
     },
     {
@@ -244,11 +249,21 @@ function Index({ cacheActions }) {
     }
   ]
 
-  const filterRecords = ({ name, branch, city, ifsc, address, state, district }) => {
-    console.log(name, branch, city, ifsc, state, district, address)
+  const filterRecords = ({ bankId, name, branch, city, ifsc, address, state, district }) => {
     let tempList = originalData
     let tempFilter = false
 
+    if (showOnlyFav) {
+      tempList = tempList && tempList.filter(item => item.isFav && item.isFav === true)
+    }
+    if (bankId) {
+      tempFilter = true
+      tempList =
+        tempList &&
+        tempList.filter(item =>
+          item.bank_id && String(item.bank_id).includes(bankId.toLowerCase()),
+        )
+    }
     if (name) {
       tempFilter = true
       tempList =
@@ -300,6 +315,7 @@ function Index({ cacheActions }) {
   }
 
   const resetFilter = () => {
+    setBankId('')
     setName('')
     setAddress('')
     setBranch('')
@@ -308,12 +324,16 @@ function Index({ cacheActions }) {
     setDistrict('')
     setState('')
     setIsFilterActive(false)
+    setTableData(originalData)
   }
 
   const filterHandler = e => {
     const tempName = e.target.name
     const value = e.target.value
     switch (tempName) {
+      case 'bankId':
+        setBankId(value)
+        break
       case 'name':
         setName(value)
         break
@@ -339,6 +359,7 @@ function Index({ cacheActions }) {
         break
     }
     filterRecords({
+      bankId: tempName === 'bankId' ? value : bankId,
       name: tempName === 'name' ? value : name,
       branch: tempName === 'branch' ? value : branch,
       city: tempName === 'city' ? value : city,
@@ -361,19 +382,20 @@ function Index({ cacheActions }) {
       width: '98%',
     }}>
       <span style={container}>
-        <span style={labelStyle}>Name :</span>
+        <span style={labelStyle}>Bank ID :</span>
         <Input
           size="small"
-          name="name"
-          placeholder="Search Name"
+          name="bankId"
+          placeholder="Search Bank Id"
           allowClear
-          value={name}
+          value={bankId}
           onChange={e =>
             filterHandler(e)
           }
           style={tableFilterStyles}
         />
       </span>
+
       <span style={container}>
         <span style={labelStyle}>Branch :</span>
         <Input
@@ -382,20 +404,6 @@ function Index({ cacheActions }) {
           name="branch"
           placeholder="Search Branch"
           value={branch}
-          onChange={e =>
-            filterHandler(e)
-          }
-          style={tableFilterStyles}
-        />
-      </span>
-      <span style={container}>
-        <span style={labelStyle}>IFSC :</span>
-        <Input
-          size="small"
-          name="ifsc"
-          allowClear
-          placeholder="Search IFSC Code"
-          value={ifsc}
           onChange={e =>
             filterHandler(e)
           }
@@ -416,20 +424,7 @@ function Index({ cacheActions }) {
           style={tableFilterStyles}
         />
       </span>
-      <span style={container}>
-        <span style={labelStyle}>District :</span>
-        <Input
-          size="small"
-          name="district"
-          placeholder="Search Discrict"
-          allowClear
-          value={district}
-          onChange={e =>
-            filterHandler(e)
-          }
-          style={tableFilterStyles}
-        />
-      </span>
+
       <span style={container}>
         <span style={labelStyle}>State :</span>
         <Input
@@ -438,6 +433,50 @@ function Index({ cacheActions }) {
           placeholder="Search State"
           allowClear
           value={state}
+          onChange={e =>
+            filterHandler(e)
+          }
+          style={tableFilterStyles}
+        />
+      </span>
+
+      <span style={container}>
+        <span style={labelStyle}>Name :</span>
+        <Input
+          size="small"
+          name="name"
+          placeholder="Search Name"
+          allowClear
+          value={name}
+          onChange={e =>
+            filterHandler(e)
+          }
+          style={tableFilterStyles}
+        />
+      </span>
+      <span style={container}>
+        <span style={labelStyle}>IFSC :</span>
+        <Input
+          size="small"
+          name="ifsc"
+          allowClear
+          placeholder="Search IFSC Code"
+          value={ifsc}
+          onChange={e =>
+            filterHandler(e)
+          }
+          style={tableFilterStyles}
+        />
+      </span>
+
+      <span style={container}>
+        <span style={labelStyle}>District :</span>
+        <Input
+          size="small"
+          name="district"
+          placeholder="Search Discrict"
+          allowClear
+          value={district}
           onChange={e =>
             filterHandler(e)
           }
@@ -468,18 +507,22 @@ function Index({ cacheActions }) {
         </div>
       <div className='modify-table' style={{ width: '95%', alignSelf: 'center', margin: '30px auto' }}>
         <div style={{ width: '100%', padding: '10px 0 10px 10px', display: 'flex', justifyContent: 'space-between' }}>
-          <Select value={cityParam} onChange={e => setCityParam(e)} style={{ width: 180 }} >
-            <Select.Option value="MUMBAI">Mumbai</Select.Option>
-            <Select.Option value="DELHI">Delhi</Select.Option>
-            <Select.Option value="NOIDA">Noida</Select.Option>
-            <Select.Option value="JAIPUR">Jaipur</Select.Option>
-            <Select.Option value="LUCKNOW">Lucknow</Select.Option>
-          </Select>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+
+            <Select value={cityParam} onChange={e => setCityParam(e)} style={{ width: 180 }} >
+              <Select.Option value="MUMBAI">Mumbai</Select.Option>
+              <Select.Option value="DELHI">Delhi</Select.Option>
+              <Select.Option value="NOIDA">Noida</Select.Option>
+              <Select.Option value="JAIPUR">Jaipur</Select.Option>
+              <Select.Option value="LUCKNOW">Lucknow</Select.Option>
+            </Select>
+            <Checkbox onChange={e => setShowOnlyFav(e.target.checked)} checked={showOnlyFav} style={{ marginLeft: '20px' }} >Show favourite Only</Checkbox>
+          </div>
 
           {isFilterActive ? (
             <Button
               type="link"
-              style={{ marginLeft: '10px', color: '#FEBB27' }}
+              style={{ marginLeft: '10px', color: '#feb61b' }}
               onClick={resetFilter}
               size="small"
             >
